@@ -1,0 +1,47 @@
+name: py
+    
+on:
+ repository_dispatch:
+ workflow_dispatch:
+# schedule:
+#    - cron: '*/15 * * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: first
+
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@v2 # checkout the repository content to github runner.
+      - name: setup python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9 #install the python needed
+      - name: execute py script # run the run.py to get the latest data
+        run: |
+            touch conf.json
+            echo $GOOGLE_SECRET > conf.json
+            sudo apt-get install -y sox libsox-fmt-all libsox-dev ffmpeg
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+            sudo ARCH=amd64 GCLOUD_STACK_ID="407650" GCLOUD_API_KEY="eyJrIjoiMzUxMDQ1NDI3NzgzNzg5ZGE2MDFlOWM0OGQzOTY1YWM5NjAzN2E5ZCIsIm4iOiJzdGFjay00MDc2NTAtZWFzeXN0YXJ0LWdjb20iLCJpZCI6Njg1MzYwfQ==" GCLOUD_API_URL="https://integrations-api-us-central.grafana.net" /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/grafanacloud-install.sh)"
+            python app.py
+
+        env:
+          TELEGRAM_BOTS: ${{ secrets.TELEGRAM_BOTS }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          OPENAI_ENGINE: "text-davinci-002"
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          VIMEO_TOKEN: ${{ secrets.VIMEO_TOKEN }}
+          VIMEO_KEY: ${{ secrets.VIMEO_KEY }}
+          VIMEO_SECRET: ${{ secrets.VIMEO_SECRET }}
+          DROPBOX_ACCESS_TOKEN: ${{ github.event.client_payload.DROPBOX_ACCESS_TOKEN }}
+          BATCH: ${{ github.event.client_payload.batch }}
+          GENERATE_RECORDS: ${{ github.event.client_payload.generate_records }}
+          POST_TELEGRAM: ${{ github.event.client_payload.post_telegram }}
+          POST_VIMEO: ${{ github.event.client_payload.post_vimeo }}
+          POST_DROPBOX: ${{ github.event.client_payload.post_dropbox }}
